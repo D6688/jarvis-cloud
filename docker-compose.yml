@@ -1,0 +1,12 @@
+services:
+  jarvis:
+    build:
+      context: ../..
+      dockerfile: jarvis/server/Dockerfile
+    ports: ["8890:8890"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.deepseek.com/v1}
+      MODEL: ${MODEL:-deepseek-chat}
+      CLOUD_TOKEN: ${CLOUD_TOKEN:-}
+      ASR_WS: ${ASR_WS:-}

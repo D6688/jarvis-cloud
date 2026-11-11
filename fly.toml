@@ -1,0 +1,24 @@
+app = "jarvis-cloud"
+primary_region = "hkg"
+
+[build]
+  dockerfile = "jarvis/server/Dockerfile"
+
+[env]
+  PORT = "8890"
+  OPENAI_BASE_URL = "https://api.deepseek.com/v1"
+  MODEL = "deepseek-chat"
+
+[http_service]
+  internal_port = 8890
+  force_https = true
+  auto_stop_machines = "stop"
+  min_machines_running = 0
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    timeout = "5s"
+    type = "http"
+    path = "/api/health"

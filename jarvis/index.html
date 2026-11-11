@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="mint">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#04070a" />
+<meta name="robots" content="noindex,nofollow" />
+<meta name="description" content="JARVIS 2.0 全息交互界面 · 1:1 复刻（个人使用）" />
+<title>JARVIS 2.0 · 全息智能体</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304070a'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%2338e0ae' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%237ef5cf'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div id="jv-root">
+  <!-- 3D 画布宿主 -->
+  <div id="jv-canvas-host"></div>
+
+  <div id="jv-flash" aria-hidden="true"></div>
+  <div id="jv-glowline" aria-hidden="true"></div>
+
+  <!-- 面板区的暗场压边：保证亮场景下 HUD 文字可读（原片同样有压暗） -->
+  <div class="jv-scrim" aria-hidden="true"></div>
+
+  <!-- 全息屏质感层：扫描线 / 暗角 / 噪点 / 四角括号 -->
+  <div class="jv-fx" aria-hidden="true">
+    <div class="jv-scan"></div>
+    <div class="jv-vignette"></div>
+    <div class="jv-grid-overlay"></div>
+    <span class="jv-crossmark tl">+</span><span class="jv-crossmark tr">+</span>
+    <span class="jv-crossmark bl">+</span><span class="jv-crossmark br">+</span>
+    <span class="jv-crossmark c1">+</span><span class="jv-crossmark c2">+</span>
+    <div class="jv-edge-ticks" aria-hidden="true"></div>
+  </div>
+
+  <!-- ======================= 顶部 ======================= -->
+  <header id="jv-top">
+    <div class="jv-brand">
+      <svg viewBox="0 0 40 40" class="jv-mark" aria-hidden="true">
+        <circle cx="20" cy="20" r="17.5" fill="none" stroke="currentColor" stroke-opacity=".35" />
+        <circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-opacity=".55" stroke-dasharray="3 5" />
+        <circle cx="20" cy="20" r="2.6" fill="currentColor" />
+        <path d="M20 2.5v4M20 33.5v4M2.5 20h4M33.5 20h4" stroke="currentColor" stroke-opacity=".5" />
+      </svg>
+      <div class="jv-wordmark-lg">
+        <b>JARVIS</b><span>2.0</span>
+      </div>
+      <div class="jv-status"><i id="jv-status-dot"></i><span id="jv-status-text">待唤醒</span></div>
+    </div>
+    <div class="jv-top-right">
+      <div class="jv-clock-wrap">
+        <div id="jv-clock">21:42<span class="sec">:00</span></div>
+        <div id="jv-date">11 月 10 日 · 周一</div>
+      </div>
+      <div class="jv-readout">
+        <div><span>FPS</span><b id="jv-fps">60</b></div>
+        <div><span>QUALITY</span><b id="jv-quality">HIGH</b></div>
+        <div><span>LINK</span><b id="jv-link">LOCAL</b></div>
+      </div>
+      <button id="jv-gear" class="jv-gear" type="button" aria-label="设置" title="设置（S）">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.8 1.8M16.8 16.8l1.8 1.8M18.6 5.4l-1.8 1.8M7.2 16.8l-1.8 1.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================= 左栏：AGENT 进程 ======================= -->
+  <aside id="jv-left">
+    <div class="jv-rail-head">
+      <span>工作汇报</span><i class="jv-dot-sep"></i><i class="jv-rule"></i><em id="jv-taskbar-time">—</em>
+    </div>
+    <ul id="jv-tasks">
+      <li class="jv-task" data-tool="search">
+        <div class="jv-task-row">
+          <span class="jv-task-en">RESEARCH</span>
+          <span class="jv-task-spark"><svg viewBox="0 0 68 18" preserveAspectRatio="none"><path d="M0 14 L7 11 L12 13 L18 6 L24 9 L30 4 L36 11 L42 8 L50 12 L58 5 L68 9" /></svg></span>
+          <i class="jv-task-dot"></i>
+        </div>
+        <span class="jv-task-zh">信息检索与深度分析</span>
+      </li>
+      <li class="jv-task" data-tool="build">
+        <div class="jv-task-row">
+          <span class="jv-task-en">BUILDER</span>
+          <span class="jv-task-spark"><svg viewBox="0 0 68 18" preserveAspectRatio="none"><path d="M0 13 L8 13 L13 9 L20 12 L27 7 L34 11 L41 6 L48 10 L56 8 L68 12" /></svg></span>
+          <i class="jv-task-dot"></i>
+        </div>
+        <span class="jv-task-zh">文档生成与方案构建</span>
+      </li>
+      <li class="jv-task" data-tool="verify">
+        <div class="jv-task-row">
+          <span class="jv-task-en">REVIEW</span>
+          <span class="jv-task-spark"><svg viewBox="0 0 68 18" preserveAspectRatio="none"><path d="M0 12 L6 12 L11 8 L17 11 L23 13 L29 9 L35 12 L43 10 L52 13 L60 11 L68 12" /></svg></span>
+          <i class="jv-task-dot"></i>
+        </div>
+        <span class="jv-task-zh">验证评估与风险审查</span>
+      </li>
+    </ul>
+
+    <div class="jv-progress">
+      <div class="jv-ring" id="jv-ring"><span id="jv-ring-num">0%</span></div>
+      <div class="jv-progress-body">
+        <div class="jv-progress-num"><b id="jv-task-done">0</b><span>/</span><b id="jv-task-total">0</b><span class="txt">任务已完成</span></div>
+        <div class="jv-ticks" id="jv-ticks"></div>
+      </div>
+    </div>
+
+    <div class="jv-ask">
+      <i class="jv-ask-dot"></i><span id="jv-ask-text">没有任务，告诉我今天要做什么</span><i class="jv-caret"></i>
+    </div>
+
+    <div class="jv-wave">
+      <div class="jv-wave-tabs"><span class="is-on">SYSTEM</span><span>TOOL</span><span>HUMAN</span></div>
+      <canvas id="jv-wave-canvas" width="560" height="104"></canvas>
+    </div>
+
+
+  </aside>
+
+  <!-- ======================= 右栏：天气 / 出行 / 今日安排 ======================= -->
+  <aside id="jv-right">
+    <section class="jv-card jv-weather" id="jv-weather">
+      <div class="jv-card-head"><i class="jv-bar"></i><span>天气与出行</span><i class="jv-dot-sep"></i></div>
+      <div class="jv-weather-top">
+        <div class="jv-temp"><b id="jv-temp">15</b><em>°C</em></div>
+        <div class="jv-cond">
+          <b id="jv-cond">阴</b><svg class="jv-wicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15a4 4 0 0 1 .6-7.95A5.5 5.5 0 0 1 17 8.5a3.5 3.5 0 0 1-.5 6.96H6z" fill="none" stroke="currentColor" stroke-width="1.2" /><path d="M8 19l-.8 2M12 19l-.8 2M16 19l-.8 2" stroke="currentColor" stroke-width="1.1" opacity=".55" /></svg>
+          <span id="jv-feel">未央区 湿度 64%</span>
+        </div>
+        <ul class="jv-forecast" id="jv-forecast">
+          <li><span>今天</span><i>☁</i><b>10°/20°</b></li>
+          <li><span>明天</span><i>☀</i><b>9°/19°</b></li>
+          <li><span>周三</span><i>☁</i><b>8°/13°</b></li>
+        </ul>
+      </div>
+      <div class="jv-weather-sep" aria-hidden="true"></div>
+    </section>
+
+    <section class="jv-card jv-agenda" id="jv-agenda">
+      <div class="jv-card-head"><i class="jv-bar">|</i><span>今日安排</span><i class="jv-dot-sep"></i></div>
+      <ul id="jv-agenda-list">
+        <li class="jv-agenda-item is-empty">
+          <span class="jv-agenda-day">今天</span>
+          <div class="jv-agenda-body">
+            <b>还没有安排</b>
+            <span>说 “Hey Jarvis”，告诉我今天要做什么</span>
+          </div>
+        </li>
+      </ul>
+      <div class="jv-agenda-foot" id="jv-agenda-foot">一切归零 · 今日自由</div>
+    </section>
+
+    <div class="jv-llm-chip" id="jv-llm-chip">
+      <i></i><span>模型</span><em id="jv-llm-hint">本地意图</em>
+    </div>
+    <div class="jv-llm-chip jv-tools-chip" id="jv-tools-chip">
+      <i></i><span>本机权限</span><em id="jv-tools-hint">检测中…</em>
+    </div>
+  </aside>
+
+  <!-- ======================= 创作者旁白字幕（复刻模式） ======================= -->
+  <div id="jv-narration" class="is-hidden">
+    <div class="zh"></div>
+    <div class="en"></div>
+  </div>
+
+  <!-- ======================= 字幕 ======================= -->
+  <div id="jv-subtitle" class="is-hidden">
+    <div class="jv-sub-line"><span class="jv-sub-speaker" id="jv-sub-speaker">JARVIS</span><span class="jv-sub-en" id="jv-sub-en"></span></div>
+    <div class="jv-sub-zh" id="jv-sub-zh"></div>
+  </div>
+
+  <!-- ======================= 底部：对话 / 快捷指令 / 输入 ======================= -->
+  <div id="jv-bottom">
+    <div id="jv-transcript"><span class="who">YOU</span><span class="txt is-placeholder">说出你的想法，先生。</span></div>
+    <div id="jv-chips">
+      <button class="jv-chip" data-q="今天还有什么安排？">今天还有什么安排?</button>
+      <button class="jv-chip" data-q="让 Claude Code 把登录页的 bug 修一下">让 Claude Code 把登录页的 bug 修一下</button>
+      <button class="jv-chip" data-q="明天天气怎么样？">明天天气怎么样?</button>
+      <button class="jv-chip" data-q="总结一下今天的工作进度">总结一下今天的工作进度</button>
+    </div>
+    <form id="jv-inputwrap" autocomplete="off" onsubmit="return false">
+      <span class="jv-input-ico" aria-hidden="true">
+        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-opacity=".35" /><circle cx="10" cy="10" r="3" fill="currentColor" /></svg>
+      </span>
+      <input id="jv-input" type="text" placeholder="说 “Hey Jarvis”，或在这里打字" aria-label="输入指令" spellcheck="false" />
+      <span class="jv-hold" id="jv-hold">HOLD SPACE</span>
+      <button id="jv-mic" type="button" aria-label="语音输入">
+        <i class="jv-mic-ring"></i>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3" fill="currentColor" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- ======================= 边角信息 ======================= -->
+  <div id="jv-coords">
+    <span class="jv-cross">+</span>
+    <span>N 31.2304°<br />E 121.4737°</span>
+  </div>
+  <div id="jv-tagline"><i></i>让你的生活，变得简单一点。</div>
+  <div id="jv-telemetry">
+    <div class="jv-tele-labels"><span>DATA</span><span>MODELS</span><span>AGENT</span><span>KNOWLEDGE</span></div>
+    <div class="jv-tele-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div id="jv-wordmark">JARVIS <b>2.0</b><span>HOLOGRAPHIC AGENT</span></div>
+  <div id="jv-scenename"><i></i><span id="jv-scene-label">能量核心</span><span id="jv-zoom">×1.00</span></div>
+  <div id="jv-gesture" class="is-off">
+    <canvas id="jv-hand-canvas" width="384" height="216"></canvas>
+    <div class="jv-gesture-meta"><b id="jv-gesture-label">手势 · 关闭</b><span id="jv-gesture-mode">按 G 开启摄像头</span></div>
+  </div>
+  <div id="jv-voicediag" class="is-hidden">
+    <div class="jv-vd-head"><b>系统自检 · 语音 / 手势</b><span>按 V 关闭</span></div>
+    <div class="jv-vd-row"><span>引擎</span><em id="jv-vd-engine">—</em></div>
+    <div class="jv-vd-row"><span>识别桥 WS</span><em id="jv-vd-ws">—</em></div>
+    <div class="jv-vd-row"><span>音频上下文</span><em id="jv-vd-ctx">—</em></div>
+    <div class="jv-vd-row"><span>输入设备</span><select id="jv-vd-device" class="jv-vd-select"><option value="">默认麦克风</option></select></div>
+    <div class="jv-vd-row"><span>电平</span><span class="jv-vd-meter"><i id="jv-vd-meter"></i></span><em id="jv-vd-rms">0.000</em></div>
+    <div class="jv-vd-row"><span>已发送 / 收到</span><em id="jv-vd-counters">—</em></div>
+    <div class="jv-vd-row"><span>最近识别</span><em id="jv-vd-last">—</em></div>
+    <div class="jv-vd-row"><span>错误</span><em id="jv-vd-err">—</em></div>
+    <div class="jv-vd-sep">手势（MediaPipe 双手）</div>
+    <div class="jv-vd-row"><span>资源来源</span><em id="jv-gd-src">—</em></div>
+    <div class="jv-vd-row"><span>管线状态</span><em id="jv-gd-stage">—</em></div>
+    <div class="jv-vd-row"><span>送帧 / 回调</span><em id="jv-gd-count">—</em></div>
+    <div class="jv-vd-row"><span>识别到手</span><em id="jv-gd-hands">—</em></div>
+    <div class="jv-vd-row"><span>旋转 / 缩放</span><em id="jv-gd-xf">—</em></div>
+    <div class="jv-vd-row"><span>手势错误</span><em id="jv-gd-err">—</em></div>
+    <div class="jv-vd-actions"><button type="button" id="jv-gd-start">开启手势摄像头</button><button type="button" id="jv-gd-stop">关闭手势摄像头</button></div>
+    <div class="jv-vd-actions"><button type="button" id="jv-gd-demo">合成双手演示</button><button type="button" id="jv-gd-reset">姿态复位</button></div>
+    <div class="jv-vd-actions"><button type="button" id="jv-gd-server">用本地服务打开（推荐）</button></div>
+    <div class="jv-vd-actions">
+      <button type="button" id="jv-vd-reconnect">重连语音</button>
+      <button type="button" id="jv-vd-settings">打开设置</button>
+    </div>
+    <p class="jv-vd-tip">语音：<b>WS</b> 应为 1、<b>音频上下文</b> running、<b>电平</b>说话会跳；「已发送」一直 0 = 麦克风没被采集。<br>手势：<b>资源来源</b>应为「本地」，<b>送帧</b>与<b>回调</b>都要涨；举手后<b>识别到手</b>次数上涨才算识别成功。都为 0 时先用「合成双手演示」验证链路。</p>
+  </div>
+
+  <div id="jv-hint">空格说话 · 1–5 切场景 · G 手势 · S 设置 · F 全屏</div>
+  <div id="jv-toast" class="is-hidden"></div>
+
+  <!-- ======================= 设置抽屉 ======================= -->
+  <section id="jv-settings" aria-hidden="true">
+    <div class="jv-set-head"><b>系统设置</b><button id="jv-set-close" aria-label="关闭">✕</button></div>
+    <div class="jv-set-body">
+      <label class="jv-set-row"><span>语音</span><input type="checkbox" id="jv-set-voice" checked /><i class="jv-sw"></i></label>
+      <div class="jv-set-row jv-set-note"><span>语音引擎</span><em id="jv-voice-engine">检测中…</em></div>
+      <label class="jv-set-row"><span>摄像头手势</span><input type="checkbox" id="jv-set-gesture" checked /><i class="jv-sw"></i></label>
+      <label class="jv-set-row"><span>英文副字幕</span><input type="checkbox" id="jv-set-en" checked /><i class="jv-sw"></i></label>
+      <div class="jv-set-row"><span>手势灵敏度</span>
+        <div class="jv-seg" id="jv-set-gsens"><button data-v="low">低</button><button data-v="mid" class="is-on">中</button><button data-v="high">高</button></div>
+      </div>
+      <div class="jv-set-row"><span>关闭手势摄像头</span><button type="button" id="jv-set-gstop" class="jv-btn">关闭</button></div>
+      <div class="jv-set-row"><span>声音</span>
+        <div class="jv-seg" id="jv-set-gender"><button data-v="male" class="is-on">男声</button><button data-v="female">女声</button></div>
+      </div>
+      <div class="jv-set-row jv-set-note"><span>当前音色</span><em id="jv-voice-name">—</em></div>
+      <div class="jv-set-row"><span>主题</span>
+        <div class="jv-seg" id="jv-set-theme"><button data-v="mint" class="is-on">青绿</button><button data-v="amber">琥珀</button></div>
+      </div>
+      <div class="jv-set-row"><span>画质</span>
+        <div class="jv-seg" id="jv-set-quality"><button data-v="auto" class="is-on">自动</button><button data-v="high">高</button><button data-v="med">中</button><button data-v="low">低</button></div>
+      </div>
+
+      <div class="jv-set-sep"><span>大模型接入</span></div>
+      <label class="jv-set-row"><span>启用远端模型</span><input type="checkbox" id="jv-set-llm" /><i class="jv-sw"></i></label>
+      <div class="jv-field"><label>接口地址</label><input id="jv-llm-endpoint" type="text" placeholder="http://127.0.0.1:8820/api/chat（本机代理）" /></div>
+      <div class="jv-field"><label>模型</label><input id="jv-llm-model" type="text" placeholder="deepseek-chat" /></div>
+      <div class="jv-field"><label>密钥</label><input id="jv-llm-key" type="password" placeholder="sk-… （只存本机 localStorage）" /></div>
+      <div class="jv-field-row">
+        <button id="jv-llm-test" class="jv-btn">测试连接</button>
+        <span id="jv-llm-state">未接入 · 使用本地意图</span>
+      </div>
+
+      <div class="jv-set-sep"><span>快捷地图（全国城市）</span></div>
+      <div id="jv-set-cities" class="jv-city-grid"></div>
+
+      <div class="jv-set-sep"><span>记忆</span></div>
+      <label class="jv-set-row"><span>上下文记忆</span><input type="checkbox" id="jv-set-memory" checked /><i class="jv-sw"></i></label>
+      <div class="jv-set-row jv-set-note"><span>记忆量</span><em id="jv-memory-stat">—</em></div>
+      <div class="jv-set-row"><span>记忆操作</span><div class="jv-seg"><button type="button" id="jv-memory-view">查看</button><button type="button" id="jv-memory-clear">清空</button></div></div>
+
+      <div class="jv-set-sep"><span>插件</span></div>
+      <div id="jv-set-plugins" class="jv-plugin-list"></div>
+      <div class="jv-set-row jv-set-note"><span>扩展方式</span><em>jarvis/plugins/*.js</em></div>
+
+      <div class="jv-set-sep"><span>本机权限</span></div>
+      <label class="jv-set-row"><span>系统控制（应用/音量/媒体/锁屏/通知/截图）</span><input type="checkbox" id="jv-grant-system" checked /><i class="jv-sw"></i></label>
+      <label class="jv-set-row"><span>文件读写（桌面/下载/任意路径）</span><input type="checkbox" id="jv-grant-files" checked /><i class="jv-sw"></i></label>
+      <label class="jv-set-row"><span>终端命令（shell）</span><input type="checkbox" id="jv-grant-shell" checked /><i class="jv-sw"></i></label>
+      <label class="jv-set-row"><span>联网访问（抓网页 / 打开网址）</span><input type="checkbox" id="jv-grant-network" checked /><i class="jv-sw"></i></label>
+      <div class="jv-set-row jv-set-note"><span>权限桥</span><em id="jv-tools-state">检测中…</em></div>
+
+      <div class="jv-set-sep"><span>快捷键</span></div>
+      <ul class="jv-keys">
+        <li><kbd>Space</kbd> 按住说话</li>
+        <li><kbd>1</kbd>–<kbd>5</kbd> 切换场景</li>
+        <li><kbd>G</kbd> 手势 · <kbd>S</kbd> 设置 · <kbd>F</kbd> 全屏</li>
+        <li><kbd>/</kbd> 聚焦输入框 · <kbd>Esc</kbd> 关闭</li>
+      </ul>
+      <div class="jv-about">
+        <b>关于</b>
+        <p>JARVIS 2.0 全息交互界面 · 个人 1:1 复刻版。视觉与文案参考抖音创作者 <em>@奇点大猩猩Weekly</em> 的作品，非官方版本；<b>不含</b>原作者的任何素材与代码。</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="jv-filewarn" class="is-hidden">
+    <b>当前是 file:// 直接打开 · 手势与语音不可用</b>
+    <span>浏览器禁止 file:// 页面加载 WASM。双击 JARVIS.app（或 启动Jarvis.command）用 http 地址打开即可。</span>
+    <button type="button" id="jv-filewarn-go">用本地服务打开</button>
+    <button type="button" id="jv-filewarn-close">先这样看</button>
+  </div>
+
+  <!-- ======================= 启动页 ======================= -->
+  <div id="jv-boot">
+    <div class="jv-boot-inner">
+      <div class="jv-boot-mark">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-opacity=".18" />
+          <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-opacity=".7" stroke-dasharray="4 10" class="jv-boot-ring" />
+          <circle cx="60" cy="60" r="34" fill="none" stroke="currentColor" stroke-opacity=".25" />
+          <circle cx="60" cy="60" r="7" fill="currentColor" />
+          <path d="M60 8v12M60 100v12M8 60h12M100 60h12" stroke="currentColor" stroke-opacity=".5" />
+        </svg>
+      </div>
+      <h1 class="jv-boot-title">JARVIS<span>2.0</span></h1>
+      <p class="jv-boot-sub">从现在开始，我只想好好活着，活到那一天。</p>
+      <div class="jv-boot-ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <button id="jv-enter" class="jv-enter">进入全息界面</button>
+      <p class="jv-boot-foot">按 <kbd>Enter</kbd> 进入 · 建议 Chrome / Edge 全屏 · 首次进入会申请麦克风与摄像头</p>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/00-core.js"></script>
+<script src="js/13-cloud.js"></script>
+<script src="js/01-scene-orb.js"></script>
+<script src="js/02-scene-city.js"></script>
+<script src="js/03-scene-grid.js"></script>
+<script src="js/10-scene-globe.js"></script>
+<script src="js/04-hud.js"></script>
+<script src="js/05-voice.js"></script>
+<script src="js/06-gesture.js"></script>
+<script src="js/07-agent.js"></script>
+<script src="js/09-tools.js"></script>
+<script src="js/11-memory.js"></script>
+<script src="js/12-plugins.js"></script>
+<script src="js/08-boot.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "JARVIS 2.0 · 全息智能体",
+  "short_name": "JARVIS",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#04070a",
+  "theme_color": "#04070a",
+  "icons": [
+    {
+      "src": "/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

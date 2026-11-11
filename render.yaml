@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: jarvis-cloud
+    runtime: docker
+    dockerfilePath: ./jarvis/server/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: https://api.deepseek.com/v1
+      - key: MODEL
+        value: deepseek-chat
+      - key: CLOUD_TOKEN
+        generateValue: true

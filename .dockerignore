@@ -1,0 +1,16 @@
+.git
+**/.chrome*
+**/.chrome-shot
+**/.chrome-gtest
+**/.pnpm-store
+**/node_modules/.cache
+dyref/
+jarvis/preview/
+jarvis/refs/
+jarvis/deploy/
+jarvis/server/models/
+jarvis/server/config.json
+.deploy/
+*.zip
+**/*.log
+{{pkgetc}}
